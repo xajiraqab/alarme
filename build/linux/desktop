@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Alarme
+Comment=Alarme
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/alarme %u
+Terminal=false
+Type=Application
+Icon=alarme
+Categories=Utility;
+StartupWMClass=alarme
+
+ 

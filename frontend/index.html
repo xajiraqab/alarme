@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f1118" />
+    <script>
+      try {
+        if (localStorage.getItem("alarme-theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+        }
+      } catch (error) {
+        console.warn("Could not load theme preference:", error);
+      }
+      if (new URLSearchParams(location.search).has("popup")) {
+        document.documentElement.classList.add("popup-window");
+      }
+    </script>
+    <title>Alarme</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-toolbar">
+        <button id="new-reminder" class="new-button" type="button">
+          <span class="new-button-label">New</span>
+        </button>
+        <button id="open-settings" class="settings-button" type="button" aria-label="Settings">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M3 6h4m4 0h10M3 12h10m4 0h4M3 18h1m4 0h13" />
+            <circle cx="9" cy="6" r="2" />
+            <circle cx="15" cy="12" r="2" />
+            <circle cx="6" cy="18" r="2" />
+          </svg>
+        </button>
+      </header>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section id="reminder-list" class="reminder-list" aria-live="polite"></section>
+      <aside id="startup-warning" class="startup-warning" role="status" hidden>
+        <span id="startup-warning-message" class="startup-warning-message">Alarme is not set to start with Windows.</span>
+        <button id="startup-warning-add" class="startup-warning-add" type="button">Add</button>
+      </aside>
+    </main>
+
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-content">
+        <div class="dialog-heading">
+          <h2 id="settings-title" class="dialog-title">Settings</h2>
+          <button id="close-settings" class="icon-button" type="button" aria-label="Close settings">
+            <svg aria-hidden="true" viewBox="0 0 16 16">
+              <path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5" />
+            </svg>
+          </button>
+        </div>
+        <label class="theme-setting" for="theme-toggle">
+          <span>Dark mode</span>
+          <input id="theme-toggle" class="theme-switch" type="checkbox" aria-label="Dark mode" />
+        </label>
+        <div class="startup-setting">
+          <div class="startup-setting-copy">
+            <strong>Start with Windows</strong>
+            <span id="startup-status" role="status">Checking…</span>
+          </div>
+          <button id="startup-add" class="startup-action" type="button" disabled>Add</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="reminder-dialog" class="reminder-dialog" aria-labelledby="dialog-title">
+      <form id="reminder-form" class="reminder-form">
+        <div class="dialog-heading">
+          <h2 id="dialog-title" class="dialog-title">Add alarm</h2>
+          <button id="close-dialog" class="icon-button" type="button" aria-label="Close">
+            <svg aria-hidden="true" viewBox="0 0 16 16">
+              <path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="field">
+          <div class="time-picker" aria-label="Choose time in 24-hour format">
+            <div class="time-unit">
+              <button class="time-step" type="button" data-unit="hour" data-step="1" aria-label="Increase hour">▲</button>
+              <input id="time-hour" class="time-value" type="text" inputmode="numeric" maxlength="2" value="09" aria-label="Hour" aria-valuemin="0" aria-valuemax="23" role="spinbutton" />
+              <button class="time-step" type="button" data-unit="hour" data-step="-1" aria-label="Decrease hour">▼</button>
+            </div>
+            <span class="time-separator" aria-hidden="true">:</span>
+            <div class="time-unit">
+              <button class="time-step" type="button" data-unit="minute" data-step="1" aria-label="Increase minute">▲</button>
+              <input id="time-minute" class="time-value" type="text" inputmode="numeric" maxlength="2" value="00" aria-label="Minute" aria-valuemin="0" aria-valuemax="59" role="spinbutton" />
+              <button class="time-step" type="button" data-unit="minute" data-step="-1" aria-label="Decrease minute">▼</button>
+            </div>
+            <input id="reminder-time" type="hidden" value="09:00" />
+          </div>
+        </div>
+
+        <label class="field">
+          <input id="reminder-name" name="name" type="text" maxlength="120" placeholder="Text" aria-label="Reminder name" autofocus />
+        </label>
+
+        <div class="sound-select" id="sound-select">
+          <button id="sound-select-trigger" class="sound-select-trigger" type="button" role="combobox" aria-label="Notification sound: No Sound" aria-haspopup="listbox" aria-expanded="false" aria-controls="sound-select-list">
+            <span id="sound-selected-icon" class="sound-select-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8H3Zm10-1 4 6m0-6-4 6" /></svg>
+            </span>
+            <span class="sound-select-copy"><strong id="sound-selected-name">No Sound</strong></span>
+            <svg class="sound-select-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+          </button>
+          <div id="sound-select-list" class="sound-select-menu" role="listbox" aria-label="Notification sounds" popover="manual" hidden>
+            <button class="sound-option is-selected" type="button" role="option" data-sound-id="none" aria-selected="true">
+              <span class="sound-option-icon is-muted" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8H3Zm10-1 4 6m0-6-4 6" /></svg></span>
+              <span class="sound-option-copy"><strong>No Sound</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="hungarian-march" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M3 8h8l5-3v10l-5-3H3zM6 12l2 5h3l-2-5M16 7l2-2m-2 8 2 2"/></svg></span>
+              <span class="sound-option-copy"><strong>Hungarian March</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="happy-birthday" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M8 14.5V4l8-1.5v10"/><circle cx="5.5" cy="15" r="2.5"/><circle cx="13.5" cy="13" r="2.5"/><path d="m4 3 .6 1.2L6 5l-1.4.8L4 7l-.6-1.2L2 5l1.4-.8L4 3Z"/></svg></span>
+              <span class="sound-option-copy"><strong>Happy Birthday</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="moon-sun" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M9 3.5a6.5 6.5 0 1 0 7.5 7.5A7 7 0 0 1 9 3.5Z"/><circle cx="15" cy="5" r="2"/><path d="M15 1.5v1m0 5v1m-3.5-3.5h1m5 0h1m-1.8-2.2.7-.7"/></svg></span>
+              <span class="sound-option-copy"><strong>Moon &amp; Sun</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="ode-to-joy" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M8 14.5V4l8-1.5v10"/><circle cx="5.5" cy="15" r="2.5"/><circle cx="13.5" cy="13" r="2.5"/></svg></span>
+              <span class="sound-option-copy"><strong>Ode to Joy</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="soft-chime" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8H3Zm10-1.5a5 5 0 0 1 0 7m2-9a8 8 0 0 1 0 11" /></svg></span>
+              <span class="sound-option-copy"><strong>Soft Chime</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="glass-bells" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5 12 7l4.5 2-4.5 2-2 4.5L8 11l-4.5-2L8 7l2-4.5Zm5 10 1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1 1-2.5Z" /></svg></span>
+              <span class="sound-option-copy"><strong>Glass Bells</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="warm-tone" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8H3Zm10-1.5a5 5 0 0 1 0 7m2-9a8 8 0 0 1 0 11" /></svg></span>
+              <span class="sound-option-copy"><strong>Warm Tone</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="dewdrop" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5S5 8.2 5 11.8a5 5 0 0 0 10 0C15 8.2 10 2.5 10 2.5Z"/><path d="M8 13a2.2 2.2 0 0 0 2.2 2.2"/></svg></span>
+              <span class="sound-option-copy"><strong>Dewdrop</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="aurora" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M2.5 13.5c2-4 4-4 6 0s4 4 6 0 2-4 3-3M3 6.5h2m10 0h2m-7-4v2"/></svg></span>
+              <span class="sound-option-copy"><strong>Aurora</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="pulse" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M2 10h3l2-5 4 10 2-5h5"/></svg></span>
+              <span class="sound-option-copy"><strong>Pulse</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="twinkle" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m10 2 1.8 5.2L17 9l-5.2 1.8L10 16l-1.8-5.2L3 9l5.2-1.8L10 2Zm5 11 1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1 1-2.5Z"/></svg></span>
+              <span class="sound-option-copy"><strong>Twinkle</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="rain-glass" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5S5.5 7.8 5.5 11a4.5 4.5 0 0 0 9 0C14.5 7.8 10 2.5 10 2.5Z"/><path d="M3 16c1.5 1.3 3 1.3 4.5 0m5 0c1.5 1.3 3 1.3 4.5 0"/></svg></span>
+              <span class="sound-option-copy"><strong>Rain Glass</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="hearth" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10.5 2.5c.7 3-1.8 3.8-1 6.1.3 1 1.4 1.4 2.1.7.8-.8.7-1.7.5-2.3 2.4 1.7 3.4 3.6 3.4 5.6a5.5 5.5 0 0 1-11 0c0-2.7 1.4-4.6 3.8-6.8-.1 2.1.7 2.8 1.4 2.4.8-.5.4-2.8.8-5.7Z"/></svg></span>
+              <span class="sound-option-copy"><strong>Hearth</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sound-option" type="button" role="option" data-sound-id="orbit" aria-selected="false">
+              <span class="sound-option-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="7" ry="3.5" transform="rotate(-32 10 10)"/><circle cx="10" cy="10" r="1.5"/><circle cx="15.8" cy="5.5" r="1"/></svg></span>
+              <span class="sound-option-copy"><strong>Orbit</strong></span><span class="sound-option-check" aria-hidden="true">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="date-picker-wrap" class="date-picker-wrap" hidden>
+          <input id="reminder-date" name="date" type="hidden" />
+          <button id="date-trigger" class="date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false">
+            <span id="date-trigger-label"></span>
+            <span class="date-trigger-icon" aria-hidden="true">▦</span>
+          </button>
+          <fieldset id="date-field" class="calendar-field" popover="manual" hidden aria-label="Choose a date">
+            <div class="calendar-heading">
+              <h2 id="calendar-month" class="calendar-month"></h2>
+              <div class="calendar-navigation">
+                <button id="previous-month" class="calendar-nav" type="button" aria-label="Previous month">‹</button>
+                <button id="next-month" class="calendar-nav" type="button" aria-label="Next month">›</button>
+              </div>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+            <div id="calendar-days" class="calendar-days" role="group" aria-label="Days in month"></div>
+            <div class="calendar-footer">
+              <span id="selected-date-label" class="selected-date-label"></span>
+              <button id="today-date" class="today-button" type="button">Today</button>
+            </div>
+          </fieldset>
+        </div>
+
+        <fieldset id="weekdays-field" class="weekdays">
+          <div class="weekday-options">
+            <button type="button" class="weekday" data-day="1" aria-pressed="false">Mon</button>
+            <button type="button" class="weekday" data-day="2" aria-pressed="false">Tue</button>
+            <button type="button" class="weekday" data-day="3" aria-pressed="false">Wed</button>
+            <button type="button" class="weekday" data-day="4" aria-pressed="false">Thu</button>
+            <button type="button" class="weekday" data-day="5" aria-pressed="false">Fri</button>
+            <button type="button" class="weekday" data-day="6" aria-pressed="false">Sat</button>
+            <button type="button" class="weekday" data-day="0" aria-pressed="false">Sun</button>
+          </div>
+        </fieldset>
+
+        <label class="one-time-toggle">
+          <input id="one-time-event" type="checkbox" />
+          <span>Weekly</span>
+        </label>
+
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button id="delete-reminder" class="dialog-delete-button" type="button" hidden>Delete</button>
+          <span class="dialog-actions-spacer"></span>
+          <button id="cancel-reminder" class="dialog-cancel-button" type="button">Cancel</button>
+          <button id="save-reminder" class="save-button" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <section id="popup-alert" class="popup-alert" aria-live="assertive" aria-label="Reminder" hidden>
+      <header class="popup-heading">
+        <time id="popup-time" class="popup-time"></time>
+        <button id="dismiss-alert" class="popup-dismiss" type="button" aria-label="Dismiss reminder">Close</button>
+      </header>
+      <section id="popup-reminders" class="popup-reminders"></section>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

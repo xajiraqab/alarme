@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "0.1.0"
+	},
+	"info": {
+		"0409": {
+			"ProductVersion": "0.1.0",
+			"CompanyName": "xajiraqab",
+			"FileDescription": "Alarme",
+			"LegalCopyright": "(c) 2026, xajiraqab",
+			"ProductName": "Alarme",
+			"Comments": "Personal reminder application"
+		}
+	}
+}

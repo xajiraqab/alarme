@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f7f5" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="description" content="A simple Windows alarm app for one-time and weekly reminders." />
+    <title>Alarme — Simple reminders for Windows</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Alarme — Simple reminders" />
+    <meta property="og:description" content="Create one-time or weekly alarms, choose a sound, and let Alarme stay quietly in your system tray." />
+    <meta property="og:image" content="/github_images/4.png" />
+    <meta property="og:image:alt" content="Alarme's clean list of weekly and one-time alarms" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Alarme — Simple reminders" />
+    <meta name="twitter:description" content="Create one-time or weekly alarms, choose a sound, and let Alarme stay quietly in your system tray." />
+    <meta name="twitter:image" content="/github_images/4.png" />
+    <style>
+      :root {
+        color-scheme: light;
+        --page: #f7f7f5;
+        --surface: #fff;
+        --ink: #171717;
+        --muted: #74746f;
+        --line: #e8e8e3;
+        --accent: #171717;
+        --accent-hover: #33332f;
+        --soft: #eeeee9;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; background: var(--page); color: var(--ink); }
+      a { color: inherit; }
+
+      .site-header {
+        width: min(1120px, calc(100% - 48px));
+        height: 76px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 680;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: var(--accent);
+        color: white;
+      }
+
+      .brand-mark svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      .github-link { width: 28px; height: 28px; display: grid; place-items: center; color: #55554f; border-radius: 8px; transition: color 150ms ease, background 150ms ease; }
+      .github-link:hover { color: var(--ink); background: var(--soft); }
+      .github-link svg { width: 21px; height: 21px; fill: currentColor; }
+
+      .hero {
+        width: min(1120px, calc(100% - 48px));
+        margin: 46px auto 108px;
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(400px, 1.1fr);
+        align-items: center;
+        gap: clamp(42px, 7vw, 94px);
+      }
+
+      h1 { max-width: 520px; margin: 0; font-size: clamp(46px, 6vw, 72px); line-height: 0.99; letter-spacing: -0.075em; font-weight: 620; }
+      .hero-copy { max-width: 435px; margin: 23px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+
+      .benefits { display: flex; flex-wrap: wrap; gap: 9px; margin: 25px 0 28px; padding: 0; list-style: none; }
+      .benefits li { padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.6); color: #55554f; font-size: 11px; }
+
+      .download-button {
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 11px;
+        padding: 0 18px;
+        border: 1px solid var(--accent);
+        border-radius: 12px;
+        background: var(--accent);
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 150ms ease, transform 150ms ease;
+      }
+
+      .download-button:hover { transform: translateY(-1px); background: var(--accent-hover); }
+      .download-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+      .hero-visual {
+        position: relative;
+        padding: 12px;
+        border: 1px solid #e6e6e0;
+        border-radius: 21px;
+        background: rgba(255,255,255,.8);
+        box-shadow: 0 25px 70px rgba(31, 31, 24, .08), 0 2px 8px rgba(31, 31, 24, .035);
+      }
+
+      .hero-visual img { display: block; width: 100%; height: auto; border: 1px solid #ededeb; border-radius: 13px; }
+      .visual-caption { display: flex; align-items: center; justify-content: space-between; padding: 13px 4px 1px; color: var(--muted); font-size: 11px; }
+      .visual-caption strong { color: #44443f; font-weight: 550; }
+
+      .features {
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,.42);
+      }
+
+      .features-inner, .screenshots-inner, .download-inner, .site-footer-inner {
+        width: min(1120px, calc(100% - 48px));
+        margin: 0 auto;
+      }
+
+      .features-inner { display: grid; grid-template-columns: repeat(3, 1fr); padding: 35px 0; }
+      .feature { padding: 0 28px; border-left: 1px solid var(--line); }
+      .feature:first-child { padding-left: 0; border-left: 0; }
+      .feature h2 { margin: 0 0 8px; font-size: 14px; font-weight: 620; letter-spacing: -0.025em; }
+      .feature p { max-width: 270px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.65; }
+
+      .screenshots { padding: 102px 0 100px; }
+      .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 27px; }
+      .section-heading h2 { margin: 0; font-size: clamp(28px, 4vw, 39px); font-weight: 580; letter-spacing: -0.06em; }
+      .section-heading p { max-width: 330px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+      .screenshot-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: start; }
+      .shot {
+        margin: 0;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: var(--surface);
+        box-shadow: 0 12px 34px rgba(31,31,24,.04);
+      }
+      .shot img { display: block; width: 100%; height: auto; border-radius: 9px; }
+      .shot figcaption { padding: 11px 3px 2px; color: var(--muted); font-size: 11px; }
+      .shot-stack { display: grid; gap: 18px; }
+
+      .site-footer { border-top: 1px solid var(--line); }
+      .site-footer-inner { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #888881; font-size: 11px; }
+
+      @media (max-width: 800px) {
+        .hero { grid-template-columns: 1fr; gap: 42px; margin-top: 31px; }
+        .hero-content { max-width: 620px; }
+        .hero-visual { max-width: 620px; }
+        .features-inner { gap: 25px; }
+        .feature { padding: 0 18px; }
+        .screenshots { padding: 76px 0; }
+      }
+
+      @media (max-width: 560px) {
+        .site-header, .hero, .features-inner, .screenshots-inner, .site-footer-inner { width: min(100% - 32px, 1120px); }
+        .site-header { height: 64px; }
+        .hero { margin: 38px auto 68px; }
+        h1 { max-width: 420px; font-size: clamp(44px, 14vw, 62px); }
+        .hero-copy { font-size: 14px; }
+        .hero-visual { padding: 7px; border-radius: 15px; }
+        .hero-visual img { border-radius: 9px; }
+        .features-inner { grid-template-columns: 1fr; gap: 0; padding: 10px 0; }
+        .feature, .feature:first-child { padding: 17px 0; border: 0; border-bottom: 1px solid var(--line); }
+        .feature:last-child { border-bottom: 0; }
+        .section-heading { align-items: start; flex-direction: column; gap: 9px; }
+        .screenshot-grid { grid-template-columns: 1fr; }
+        .screenshots { padding: 68px 0; }
+        .site-footer-inner { align-items: center; flex-direction: row; justify-content: space-between; padding: 18px 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Alarme home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 8.5V13l3 2M5.5 3.5 3 6m15.5-2.5L21 6"/></svg>
+        </span>
+        <span>Alarme</span>
+      </a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-content">
+          <h1 id="hero-title">Remember what matters.</h1>
+          <p class="hero-copy">Create one-time or weekly alarms, choose a sound, and let Alarme stay quietly in your system tray.</p>
+          <ul class="benefits" aria-label="Alarme features">
+            <li>One-time &amp; weekly</li>
+            <li>Custom sounds</li>
+            <li>Quiet tray mode</li>
+          </ul>
+          <a class="download-button" aria-disabled="true">
+            <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 2.5v10m0 0 3.5-3.5M10 12.5 6.5 9M3.5 13.5v3h13v-3"/></svg>
+            <span>Download for Windows</span>
+          </a>
+        </div>
+
+        <div class="hero-visual">
+          <img src="./github_images/4.png" alt="Alarme's clean list of weekly and one-time alarms" width="506" height="778" />
+          <div class="visual-caption"><strong>Your alarms, at a glance</strong><span>Dark &amp; light themes</span></div>
+        </div>
+      </section>
+
+      <section class="features" aria-label="Alarme benefits">
+        <div class="features-inner">
+          <article class="feature">
+            <h2>Set it your way</h2>
+            <p>Make a one-time alarm or repeat it on the days you choose.</p>
+          </article>
+          <article class="feature">
+            <h2>Choose a sound</h2>
+            <p>Pick a short chime or keep things quiet with No Sound.</p>
+          </article>
+          <article class="feature">
+            <h2>Stays out of the way</h2>
+            <p>Alarme can wait in the system tray until you need it.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="screenshots" aria-labelledby="screenshots-title">
+        <div class="screenshots-inner">
+          <div class="section-heading">
+            <h2 id="screenshots-title">Simple by design.</h2>
+            <p>A clear view of your alarms, with only the controls you need.</p>
+          </div>
+          <div class="screenshot-grid">
+            <figure class="shot">
+              <img src="./github_images/1.png" alt="Editing a weekly alarm and choosing its notification sound" width="506" height="553" loading="lazy" />
+              <figcaption>Choose the time, days, and notification sound.</figcaption>
+            </figure>
+            <div class="shot-stack">
+              <figure class="shot">
+                <img src="./github_images/2.png" alt="Creating a one-time alarm in Alarme" width="506" height="553" loading="lazy" />
+                <figcaption>Create a one-time alarm in a few steps.</figcaption>
+              </figure>
+              <figure class="shot">
+                <img src="./github_images/3.png" alt="An alarm with no notification sound selected" width="506" height="553" loading="lazy" />
+                <figcaption>Keep an alarm silent with No Sound.</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <span>© 2026 Alarme</span>
+        <a class="github-link" href="#" aria-label="Alarme on GitHub" title="GitHub">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+          </svg>
+        </a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+./config.go
+./doc.go
+./download.go
+./events.go
+./extract.go
+./helper.go
+./helper_windows.go
+./spawn.go
+./spawn_windows.go
+./types.go
+./updater.go
+./updater_notdarwin.go
+./validate.go
+./verify.go
+./window.go
+./window_lifecycle.go
