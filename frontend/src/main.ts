@@ -529,9 +529,9 @@ function formatReminderSchedule(reminder: Reminder): string {
   return weekdays.map((day) => weekdayNames[day].slice(0, 3)).join(", ");
 }
 
-function showDueReminder(reminder: Reminder) {
+function showDueReminder(reminder: Reminder): boolean {
   if (popupRemindersElement.querySelector(`[data-reminder-id="${CSS.escape(reminder.id)}"]`)) {
-    return;
+    return false;
   }
 
   if (!popupRemindersElement.childElementCount) {
@@ -549,6 +549,7 @@ function showDueReminder(reminder: Reminder) {
   alert.append(title);
   popupRemindersElement.append(alert);
   popupAlertElement.hidden = false;
+  return true;
 }
 
 async function loadReminders() {
@@ -608,14 +609,20 @@ if (isPopupWindow) {
   });
 
   Events.On("reminder:due", (event) => {
-    showDueReminder(event.data);
+    if (showDueReminder(event.data)) {
+      queueNotificationSound(event.data.sound ?? "none");
+    }
     void ReminderService.AcknowledgeAlert(event.data.id).catch((error) => {
       console.error("Could not acknowledge reminder:", error);
     });
   });
 
   void ReminderService.PendingAlerts()
-    .then((reminders) => (reminders ?? []).forEach(showDueReminder))
+    .then((reminders) => (reminders ?? []).forEach((reminder) => {
+      if (showDueReminder(reminder)) {
+        queueNotificationSound(reminder.sound ?? "none");
+      }
+    }))
     .catch((error) => console.error("Could not load pending reminders:", error));
 
   document.getElementById("dismiss-alert")!.addEventListener("click", async () => {
@@ -630,9 +637,6 @@ if (isPopupWindow) {
 }
 
 if (!isPopupWindow) {
-  Events.On("reminder:due", (event) => {
-    queueNotificationSound(event.data.sound ?? "none");
-  });
   soundButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const sound = button.dataset.soundId ?? "none";
